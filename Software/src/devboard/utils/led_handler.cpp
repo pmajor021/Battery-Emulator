@@ -65,13 +65,39 @@ void LED::exe(void) {
 
   //update tm1637 display is connected
   if (esp32hal->TM1637_CLK_PIN() != GPIO_NUM_NC) {
-    // Display battery voltage on TM1637
-    float reported_soc = ((float)datalayer.battery.status.reported_soc) / 100.0f;
-    display1.print(reported_soc, "", true); // Display with decimal point at 3rd position
-    if (battery2 && esp32hal->TM1637_DIO2_PIN() != GPIO_NUM_NC) {
-      float reported_soc2 = ((float)datalayer.battery2.status.reported_soc) / 100.0f;
-      display2.print(reported_soc2, "", true); // Display with decimal point at 3rd position
-    } 
+    switch ((millis() /1000u) % 8) {
+      case 0: 
+        display1.print("soc");
+        break;
+      case 1: {
+        float reported_soc = ((float)datalayer.battery.status.reported_soc) / 100.0f;
+        display1.print(reported_soc, "", true); 
+        }
+        break;
+      case 2: 
+        display1.print("volt");
+        break;
+      case 3: {
+        float reported_voltage = ((float)datalayer.battery.status.voltage_dV) / 10.0f;
+        display1.print(reported_voltage, "", true); 
+        }
+        break;
+      case 4: 
+        display1.print("amp");
+        break;
+      case 5: {
+        float reported_current = ((float)datalayer.battery.status.current_dA) / 10.0f;
+        display1.print(reported_current, "", true);   
+        }
+      case 6: 
+        display1.print("cap");
+        break;
+      case 7: {
+        float reported_capacity = ((float)datalayer.battery.status.remaining_capacity_Wh) / 1000.0f;
+        display1.print(reported_capacity, "", true);   
+        }
+        break;
+    }
   }
 
   // Update brightness
