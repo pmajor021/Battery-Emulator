@@ -3,6 +3,8 @@
 #include "../../devboard/hal/hal.h"
 #include "events.h"
 #include "value_mapping.h"
+#include "../../lib/fadhil-1911-SmartTM1637/src/SmartTM1637.h"
+#include "../../battery/BATTERIES.h"
 
 #define COLOR_GREEN(x) (((uint32_t)0 << 16) | ((uint32_t)x << 8) | 0)
 #define COLOR_YELLOW(x) (((uint32_t)x << 16) | ((uint32_t)x << 8) | 0)
@@ -18,6 +20,10 @@ static const float heartbeat_deviation = 0.05;
 
 static LED* led;
 
+SmartTM1637 display1(16, 15);  // TM1637 CLK and DIO1 pins
+SmartTM1637 display2(16, 45);  // TM1637 CLK and DIO2 pins
+
+
 bool led_init(void) {
   if (!esp32hal->alloc_pins("LED", esp32hal->LED_PIN())) {
     DEBUG_PRINTF("LED setup failed\n");
@@ -29,11 +35,44 @@ bool led_init(void) {
   return true;
 }
 
+bool tm1637_init(void) {
+  if (!esp32hal->alloc_pins("TM1637_CLK", esp32hal->TM1637_CLK_PIN())) {
+    DEBUG_PRINTF("TM1637_1 setup failed\n");
+    return false;
+  }
+
+  display1.begin(5);   // Must call for initialization, set the brightness (5)
+  display1.clear();  // Clear all digits
+  display1.print("batt");
+  if (battery2) {
+    if (!esp32hal->alloc_pins("TM1637_DIO2", esp32hal->TM1637_DIO2_PIN())) {
+      DEBUG_PRINTF("TM1637_2 DIO2 setup failed\n");
+      return false;
+    }
+    display2.begin(5);   // Must call for initialization, set the brightness (5)
+    display2.clear();  // Clear all digits
+    display2.print("batt");
+  }
+
+  return true;
+}
+
 void led_exe(void) {
   led->exe();
 }
 
 void LED::exe(void) {
+
+  //update tm1637 display is connected
+  if (esp32hal->TM1637_CLK_PIN() != GPIO_NUM_NC) {
+    // Display battery voltage on TM1637
+    float reported_soc = ((float)datalayer.battery.status.reported_soc) / 100.0f;
+    display1.print(reported_soc, "", true); // Display with decimal point at 3rd position
+    if (battery2 && esp32hal->TM1637_DIO2_PIN() != GPIO_NUM_NC) {
+      float reported_soc2 = ((float)datalayer.battery2.status.reported_soc) / 100.0f;
+      display2.print(reported_soc2, "", true); // Display with decimal point at 3rd position
+    } 
+  }
 
   // Update brightness
   switch (datalayer.battery.status.led_mode) {

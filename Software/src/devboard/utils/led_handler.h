@@ -3,6 +3,7 @@
 
 #include "../../devboard/utils/types.h"
 #include "../../lib/adafruit-Adafruit_NeoPixel/Adafruit_NeoPixel.h"
+#include "../../lib/fadhil-1911-SmartTM1637/src/SmartTM1637.h"
 
 class LED {
  public:
@@ -29,6 +30,7 @@ class LED {
 };
 
 bool led_init(void);
+bool tm1637_init(void);
 void led_exe(void);
 
 #endif  // LED_H_
