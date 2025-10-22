@@ -36,24 +36,25 @@ bool led_init(void) {
 }
 
 bool tm1637_init(void) {
-  if (!esp32hal->alloc_pins("TM1637_CLK", esp32hal->TM1637_CLK_PIN())) {
-    DEBUG_PRINTF("TM1637_1 setup failed\n");
-    return false;
-  }
-
-  display1.begin(5);   // Must call for initialization, set the brightness (5)
-  display1.clear();  // Clear all digits
-  display1.print("batt");
-  if (battery2) {
-    if (!esp32hal->alloc_pins("TM1637_DIO2", esp32hal->TM1637_DIO2_PIN())) {
-      DEBUG_PRINTF("TM1637_2 DIO2 setup failed\n");
+  #ifdef __HW_LILYGO2CAN_H__
+    if (!esp32hal->alloc_pins("TM1637_CLK", esp32hal->TM1637_CLK_PIN())) {
+      DEBUG_PRINTF("TM1637_1 setup failed\n");
       return false;
     }
-    display2.begin(5);   // Must call for initialization, set the brightness (5)
-    display2.clear();  // Clear all digits
-    display2.print("batt");
-  }
 
+    display1.begin(5);   // Must call for initialization, set the brightness (5)
+    display1.clear();  // Clear all digits
+    display1.print("batt");
+    if (battery2) {
+      if (!esp32hal->alloc_pins("TM1637_DIO2", esp32hal->TM1637_DIO2_PIN())) {
+        DEBUG_PRINTF("TM1637_2 DIO2 setup failed\n");
+        return false;
+      }
+      display2.begin(5);   // Must call for initialization, set the brightness (5)
+      display2.clear();  // Clear all digits
+      display2.print("batt");
+    }
+  #endif
   return true;
 }
 
@@ -62,44 +63,46 @@ void led_exe(void) {
 }
 
 void LED::exe(void) {
-
-  //update tm1637 display is connected
-  if (esp32hal->TM1637_CLK_PIN() != GPIO_NUM_NC) {
-    switch ((millis() /1000u) % 8) {
-      case 0: 
-        display1.print("soc");
-        break;
-      case 1: {
-        float reported_soc = ((float)datalayer.battery.status.reported_soc) / 100.0f;
-        display1.print(reported_soc, "", true); 
-        }
-        break;
-      case 2: 
-        display1.print("volt");
-        break;
-      case 3: {
-        float reported_voltage = ((float)datalayer.battery.status.voltage_dV) / 10.0f;
-        display1.print(reported_voltage, "", true); 
-        }
-        break;
-      case 4: 
-        display1.print("amp");
-        break;
-      case 5: {
-        float reported_current = ((float)datalayer.battery.status.current_dA) / 10.0f;
-        display1.print(reported_current, "", true);   
-        }
-      case 6: 
-        display1.print("cap");
-        break;
-      case 7: {
-        float reported_capacity = ((float)datalayer.battery.status.remaining_capacity_Wh) / 1000.0f;
-        display1.print(reported_capacity, "", true);   
-        }
-        break;
+  #ifdef __HW_LILYGO2CAN_H__ 
+    //update tm1637 display if connected
+    if (esp32hal->TM1637_CLK_PIN() != GPIO_NUM_NC) {
+      switch ((millis() /1000u) % 8) {
+        case 0: 
+          display1.print("soc");
+          break;
+        case 1: {
+          float reported_soc = ((float)datalayer.battery.status.reported_soc) / 100.0f;
+          display1.print(reported_soc, "", true); 
+          }
+          break;
+        case 2: 
+          display1.print("volt");
+          break;
+        case 3: {
+          float reported_voltage = ((int)datalayer.battery.status.voltage_dV);
+          display1.printNumber(reported_voltage, false); 
+          }
+          break;
+        case 4: 
+          display1.print("amp");
+          break;
+        case 5: {
+          float reported_current = ((float)datalayer.battery.status.current_dA) / 10.0f;
+          display1.print(reported_current, "", true);   
+          }
+          break;
+        case 6: 
+          display1.print("cap");
+          break;
+        case 7: {
+          float reported_capacity = ((float)datalayer.battery.status.remaining_capacity_Wh) / 1000.0f;
+          display1.print(reported_capacity, "", true);   
+          }
+          break;
+      }
     }
-  }
-
+  #endif
+  
   // Update brightness
   switch (datalayer.battery.status.led_mode) {
     case led_mode_enum::FLOW:

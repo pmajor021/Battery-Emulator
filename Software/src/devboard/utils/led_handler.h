@@ -30,7 +30,9 @@ class LED {
 };
 
 bool led_init(void);
+#ifdef __HW_LILYGO2CAN_H__
 bool tm1637_init(void);
+#endif
 void led_exe(void);
 
 #endif  // LED_H_
