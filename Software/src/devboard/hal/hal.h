@@ -155,11 +155,10 @@ class Esp32Hal {
   virtual gpio_num_t LED_PIN() { return GPIO_NUM_NC; }
   virtual uint8_t LED_MAX_BRIGHTNESS() { return 40; }
 
-  // TM1637 Display
-  virtual gpio_num_t TM1637_CLK_PIN() { return GPIO_NUM_NC; }
-  virtual gpio_num_t TM1637_DIO1_PIN() { return GPIO_NUM_NC; }
-  virtual gpio_num_t TM1637_DIO2_PIN() { return GPIO_NUM_NC; }
-  virtual uint8_t TM1637_MAX_BRIGHTNESS() { return 7; }
+  // MAX7219 Display
+  virtual gpio_num_t MAX7219_DIN_PIN() { return GPIO_NUM_NC; }
+  virtual gpio_num_t MAX7219_CS_PIN() { return GPIO_NUM_NC; }
+  virtual gpio_num_t MAX7219_CLK_PIN() { return GPIO_NUM_NC; }
 
   // Equipment stop pin
   virtual gpio_num_t EQUIPMENT_STOP_PIN() { return GPIO_NUM_NC; }

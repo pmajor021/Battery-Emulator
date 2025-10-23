@@ -3,7 +3,7 @@
 #include "../../devboard/hal/hal.h"
 #include "events.h"
 #include "value_mapping.h"
-#include "../../lib/fadhil-1911-SmartTM1637/src/SmartTM1637.h"
+#include "../../devboard/webserver/webserver.h"
 #include "../../battery/BATTERIES.h"
 
 #define COLOR_GREEN(x) (((uint32_t)0 << 16) | ((uint32_t)x << 8) | 0)
@@ -20,9 +20,17 @@ static const float heartbeat_deviation = 0.05;
 
 static LED* led;
 
-SmartTM1637 display1(16, 15);  // TM1637 CLK and DIO1 pins
-SmartTM1637 display2(16, 45);  // TM1637 CLK and DIO2 pins
+// MAX7219 Display
+static uint8_t SDIN_PIN = 16; 
+static uint8_t SCLK_PIN = 45; 
+static uint8_t CS_PIN   = 15; 
+static uint8_t totalDisplays = 1; 
+static uint16_t CommDelay = 0;
+MAX7219plus_Model6 MAX7219(CS_PIN, SCLK_PIN,SDIN_PIN, CommDelay, totalDisplays);
 
+static unsigned long lastPrintTime = 0;
+static const unsigned long interval = 1000;
+static int battery_show = 1;
 
 bool led_init(void) {
   if (!esp32hal->alloc_pins("LED", esp32hal->LED_PIN())) {
@@ -32,28 +40,13 @@ bool led_init(void) {
 
   led = new LED(datalayer.battery.status.led_mode, esp32hal->LED_PIN(), esp32hal->LED_MAX_BRIGHTNESS());
 
+  MAX7219.InitDisplay(MAX7219.ScanEightDigit, MAX7219.DecodeModeNone);
+	MAX7219.ClearDisplay();
+  char bestring[8];
+  sprintf(bestring, "%s", version_number);
+  MAX7219.DisplayText(bestring, MAX7219.AlignLeft);
+
   return true;
-}
-
-bool tm1637_init(void) {
-  if (!esp32hal->alloc_pins("TM1637_CLK", esp32hal->TM1637_CLK_PIN())) {
-    DEBUG_PRINTF("TM1637_1 setup failed\n");
-    return false;
-  }
-
-  display1.begin(5);   // Must call for initialization, set the brightness (5)
-  display1.clear();  // Clear all digits
-  display1.print("batt");
-  if (battery2) {
-    if (!esp32hal->alloc_pins("TM1637_DIO2", esp32hal->TM1637_DIO2_PIN())) {
-      DEBUG_PRINTF("TM1637_2 DIO2 setup failed\n");
-      return false;
-    }
-    display2.begin(5);   // Must call for initialization, set the brightness (5)
-    display2.clear();  // Clear all digits
-    display2.print("batt");
-  }
-return true;
 }
 
 void led_exe(void) {
@@ -61,41 +54,62 @@ void led_exe(void) {
 }
 
 void LED::exe(void) {
-  //update tm1637 display if connected
-  if (esp32hal->TM1637_CLK_PIN() != GPIO_NUM_NC) {
-    switch ((millis() /1000u) % 8) {
-      case 0: 
-        display1.print("soc");
-        break;
-      case 1: {
-        float reported_soc = ((float)datalayer.battery.status.reported_soc) / 100.0f;
-        display1.print(reported_soc, "", true); 
+  //update MAX7219 display if connected
+  static bool max7219_connected = (esp32hal->MAX7219_CLK_PIN() != GPIO_NUM_NC);
+  if (max7219_connected) {
+  unsigned long currentTime = millis();
+  if (currentTime - lastPrintTime >= interval) {
+    lastPrintTime = currentTime;
+    switch ((millis() /1000u) % 16) {
+      case 0 ... 1: {
+          char maxstring[8];
+          sprintf(maxstring, "SOC   ");
+          MAX7219.DisplayText(maxstring, MAX7219.AlignLeft);
         }
         break;
-      case 2: 
-        display1.print("volt");
-        break;
-      case 3: {
-        float reported_voltage = ((int)datalayer.battery.status.voltage_dV);
-        display1.printNumber(reported_voltage, false); 
+      case 2 ... 3: {
+        char reported_soc [8];
+        sprintf(reported_soc, "%.2f", ((float)datalayer.battery.status.reported_soc / 100.0f));
+        MAX7219.DisplayText(reported_soc, MAX7219.AlignLeft); 
         }
         break;
-      case 4: 
-        display1.print("amp");
-        break;
-      case 5: {
-        float reported_current = ((float)datalayer.battery.status.current_dA) / 10.0f;
-        display1.print(reported_current, "", true);   
+      case 4 ... 5: {
+          char maxstring[8];
+          sprintf(maxstring, "VOLT  ");
+          MAX7219.DisplayText(maxstring, MAX7219.AlignLeft);
         }
         break;
-      case 6: 
-        display1.print("cap");
-        break;
-      case 7: {
-        float reported_capacity = ((float)datalayer.battery.status.remaining_capacity_Wh) / 1000.0f;
-        display1.print(reported_capacity, "", true);   
+      case 6 ... 7: {
+        char reported_voltage [8];
+        sprintf(reported_voltage, "%.1fV", ((float)datalayer.battery.status.voltage_dV / 10.0f));
+        MAX7219.DisplayText(reported_voltage,MAX7219.AlignLeft); 
         }
         break;
+      case 8 ... 9: {
+          char maxstring[8];
+          sprintf(maxstring, "CURR  ");
+          MAX7219.DisplayText(maxstring, MAX7219.AlignLeft);
+        }
+        break;
+      case 10 ... 11: {
+        char reported_current [8];
+        sprintf(reported_current, "%.1fA ", ((float)datalayer.battery.status.current_dA / 10.0f));
+        MAX7219.DisplayText(reported_current, MAX7219.AlignLeft);
+        }
+        break;
+      case 12 ... 13:{
+          char maxstring[8];
+          sprintf(maxstring, "CAP   ");
+          MAX7219.DisplayText(maxstring, MAX7219.AlignLeft);
+        }
+        break;
+      case 14 ...15: {
+        char reported_capacity [8];
+        sprintf(reported_capacity, "%.2fk", ((float)datalayer.battery.status.remaining_capacity_Wh / 1000.0f));
+        MAX7219.DisplayText(reported_capacity, MAX7219.AlignLeft);   
+        }
+        break;
+    }
     }
   }
     

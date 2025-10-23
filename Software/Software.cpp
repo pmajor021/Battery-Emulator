@@ -537,10 +537,6 @@ void setup() {
 
   led_init();
   
-  #ifdef __HW_LILYGO2CAN_H__
-  tm1637_init();
-  #endif
-
   if (datalayer.system.info.CAN_SD_logging_active || datalayer.system.info.SD_logging_active) {
     xTaskCreatePinnedToCore((TaskFunction_t)&logging_loop, "logging_loop", 4096, NULL, TASK_CONNECTIVITY_PRIO,
                             &logging_loop_task, esp32hal->WIFICORE());

@@ -3,7 +3,7 @@
 
 #include "../../devboard/utils/types.h"
 #include "../../lib/adafruit-Adafruit_NeoPixel/Adafruit_NeoPixel.h"
-#include "../../lib/fadhil-1911-SmartTM1637/src/SmartTM1637.h"
+#include "../../lib/gavinlyonsrepo-TM1638plus/src/Max7219plus.h"
 
 class LED {
  public:
