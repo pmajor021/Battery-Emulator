@@ -155,6 +155,10 @@ class Esp32Hal {
   virtual gpio_num_t LED_PIN() { return GPIO_NUM_NC; }
   virtual uint8_t LED_MAX_BRIGHTNESS() { return 40; }
 
+  // LCD 
+  virtual gpio_num_t LCD_SDA() { return GPIO_NUM_NC; }
+  virtual gpio_num_t LCD_SCL() { return GPIO_NUM_NC; }
+
   // Equipment stop pin
   virtual gpio_num_t EQUIPMENT_STOP_PIN() { return GPIO_NUM_NC; }
 

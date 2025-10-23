@@ -84,6 +84,10 @@ class LilyGo2CANHal : public Esp32Hal {
   virtual gpio_num_t LED_PIN() { return GPIO_NUM_35; }
   virtual uint8_t LED_MAX_BRIGHTNESS() { return 40; }
 
+  // LCD 
+  virtual gpio_num_t LCD_SDA() { return GPIO_NUM_16; }
+  virtual gpio_num_t LCD_SCL() { return GPIO_NUM_15; }
+
   // Equipment stop pin
   virtual gpio_num_t EQUIPMENT_STOP_PIN() { return GPIO_NUM_36; }
 

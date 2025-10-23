@@ -3,6 +3,7 @@
 #include "../../devboard/hal/hal.h"
 #include "events.h"
 #include "value_mapping.h"
+#include "../../devboard/webserver/webserver.h"
 
 #define COLOR_GREEN(x) (((uint32_t)0 << 16) | ((uint32_t)x << 8) | 0)
 #define COLOR_YELLOW(x) (((uint32_t)x << 16) | ((uint32_t)x << 8) | 0)
@@ -18,6 +19,13 @@ static const float heartbeat_deviation = 0.05;
 
 static LED* led;
 
+static unsigned long lastPrintTime = 0;
+static const unsigned long interval = 2500;
+static int battery_show = 1;
+
+// Set the LCD I2C address and dimensions
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
 bool led_init(void) {
   if (!esp32hal->alloc_pins("LED", esp32hal->LED_PIN())) {
     DEBUG_PRINTF("LED setup failed\n");
@@ -25,6 +33,19 @@ bool led_init(void) {
   }
 
   led = new LED(datalayer.battery.status.led_mode, esp32hal->LED_PIN(), esp32hal->LED_MAX_BRIGHTNESS());
+
+  // Configure custom I2C pins
+  Wire.begin(16, 15, 100000); // SDA = GPIO 16, SCL = GPIO 15
+
+  // Initialize LCD
+  lcd.init();
+  lcd.backlight();
+
+  // Display message
+  lcd.setCursor(0, 0);
+  lcd.print("Battery Emulator");
+  lcd.setCursor(0, 1);
+  lcd.print(version_number);
 
   return true;
 }
@@ -66,6 +87,35 @@ void LED::exe(void) {
   }
 
   pixels.show();  // This sends the updated pixel color to the hardware.
+
+  unsigned long currentTime = millis();
+
+  if (currentTime - lastPrintTime >= interval) {
+    lastPrintTime = currentTime;
+
+    // Select which battery to display (1 or 2)
+    auto* bat = (battery_show == 1) ? &datalayer.battery : &datalayer.battery2;
+
+    lcd.clear();
+    lcd.print((battery_show == 1) ? "B1: " : "B2: ");
+    float reported_soc = ((float)bat->status.reported_soc) / 100.0f;
+    lcd.print(String(reported_soc, 1));
+    lcd.print("% ");
+    float reported_volt = ((float)bat->status.voltage_dV) / 10.0f;
+    lcd.print(String(reported_volt, 1));
+    lcd.print("V");
+    lcd.setCursor(0, 1);
+    float reported_amp = ((float)bat->status.current_dA) / 10.0f;
+    lcd.print(String(reported_amp, 1));
+    lcd.print("A ");
+    float reported_power = ((float)bat->status.active_power_W) / 1000.0f;
+    lcd.print(String(reported_power, 2));
+    lcd.print("kW");
+
+    // toggle shown battery for next update
+    battery_show = (battery_show == 1) ? 2 : 1;
+  }
+
 }
 
 void LED::classic_run(void) {

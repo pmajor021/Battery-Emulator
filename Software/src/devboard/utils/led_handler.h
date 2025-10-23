@@ -3,6 +3,8 @@
 
 #include "../../devboard/utils/types.h"
 #include "../../lib/adafruit-Adafruit_NeoPixel/Adafruit_NeoPixel.h"
+#include "Wire.h"
+#include "../../lib/marcoschwartz-LiquidCrystal_I2C/LiquidCrystal_I2C.h"
 
 class LED {
  public:
