@@ -97,7 +97,7 @@ void LED::exe(void) {
     auto* bat = (battery_show == 1) ? &datalayer.battery : &datalayer.battery2;
 
     lcd.clear();
-    lcd.print((battery_show == 1) ? "B1: " : "B2: ");
+    lcd.print((battery_show == 1) ? "B1:" : "B2:");
     float reported_soc = ((float)bat->status.reported_soc) / 100.0f;
     lcd.print(String(reported_soc, 1));
     lcd.print("% ");
