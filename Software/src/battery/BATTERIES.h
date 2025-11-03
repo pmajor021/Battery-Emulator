@@ -9,7 +9,7 @@ class Battery;
 extern Battery* battery;
 extern Battery* battery2;
 
-void setup_can_shunt();
+void setup_shunt();
 
 #include "BMW-I3-BATTERY.h"
 #include "BMW-IX-BATTERY.h"
@@ -23,6 +23,7 @@ void setup_can_shunt();
 #include "CMFA-EV-BATTERY.h"
 #include "DALY-BMS.h"
 #include "ECMP-BATTERY.h"
+#include "FORD-MACH-E-BATTERY.h"
 #include "FOXESS-BATTERY.h"
 #include "GEELY-GEOMETRY-C-BATTERY.h"
 #include "HYUNDAI-IONIQ-28-BATTERY.h"

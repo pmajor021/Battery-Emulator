@@ -34,7 +34,7 @@
 #endif
 
 // The current software version, shown on webserver
-const char* version_number = "9.2.dev";
+const char* version_number = "9.3.dev";
 
 // Interval timers
 volatile unsigned long currentMillis = 0;
@@ -127,9 +127,11 @@ void check_interconnect_available() {
   }
 
   uint16_t voltage_diff = abs(datalayer.battery.status.voltage_dV - datalayer.battery2.status.voltage_dV);
+  uint8_t secondsOutOfVoltageSync = 0;
 
   if (voltage_diff <= 30) {  // If we are within 3.0V between the batteries
     clear_event(EVENT_VOLTAGE_DIFFERENCE);
+    secondsOutOfVoltageSync = 0;
     if (datalayer.battery.status.bms_status == FAULT) {
       // If main battery is in fault state, disengage the second battery
       datalayer.system.status.battery2_allowed_contactor_closing = false;
@@ -138,6 +140,13 @@ void check_interconnect_available() {
     }
   } else {  //Voltage between the two packs is too large
     set_event(EVENT_VOLTAGE_DIFFERENCE, (uint8_t)(voltage_diff / 10));
+
+    //If we start to drift out of sync between the two packs for more than 10 seconds, open contactors
+    if (secondsOutOfVoltageSync < 10) {
+      secondsOutOfVoltageSync++;
+    } else {
+      datalayer.system.status.battery2_allowed_contactor_closing = false;
+    }
   }
 }
 
@@ -549,7 +558,7 @@ void setup() {
   setup_charger();
   setup_inverter();
   setup_battery();
-  setup_can_shunt();
+  setup_shunt();
 
   // Init CAN only after any CAN receivers have had a chance to register.
   init_CAN();

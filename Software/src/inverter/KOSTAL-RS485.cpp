@@ -125,7 +125,7 @@ void KostalInverterProtocol::update_values() {
   float2frame(CYCLIC_DATA, (float)average_temperature_dC / 10, 14);
 
   //Only perform this operation when Shunt is in used and set to BMW SBOX
-  if (shunt || (user_selected_shunt_type == ShuntType::BmwSbox)) {
+  if (user_selected_shunt_type == ShuntType::BmwSbox) {
     float2frame(CYCLIC_DATA, (float)(datalayer.shunt.measured_amperage_mA / 100) / 10, 18);
     float2frame(CYCLIC_DATA, (float)(datalayer.shunt.measured_avg1S_amperage_mA / 100) / 10, 22);
 
@@ -212,7 +212,7 @@ void KostalInverterProtocol::receive()  // Runs as fast as possible to handle th
   if (datalayer.system.status.battery_allows_contactor_closing & !contactorMillis) {
     contactorMillis = currentMillis;
   }
-  if (currentMillis - contactorMillis >= INTERVAL_2_S & !RX_allow) {
+  if ((currentMillis - contactorMillis >= INTERVAL_2_S) && !RX_allow) {
     dbg_message("RX_allow -> true");
     RX_allow = true;
   }

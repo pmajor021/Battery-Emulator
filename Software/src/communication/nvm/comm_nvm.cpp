@@ -22,8 +22,8 @@ void init_stored_settings() {
   settings.begin("batterySettings", false);
 
   // Always get the equipment stop status
-  datalayer.system.settings.equipment_stop_active = settings.getBool("EQUIPMENT_STOP", false);
-  if (datalayer.system.settings.equipment_stop_active) {
+  datalayer.system.info.equipment_stop_active = settings.getBool("EQUIPMENT_STOP", false);
+  if (datalayer.system.info.equipment_stop_active) {
     DEBUG_PRINTF("Equipment stop status set in boot.");
     set_event(EVENT_EQUIPMENT_STOP, 1);
   }
@@ -43,9 +43,9 @@ void init_stored_settings() {
   if (temp != 0) {
     datalayer.battery.settings.max_percentage = temp * 10;  // Multiply by 10 for backwards compatibility
   }
-  temp = settings.getUInt("MINPERCENTAGE", false);
-  if (temp < 499) {
-    datalayer.battery.settings.min_percentage = temp * 10;  // Multiply by 10 for backwards compatibility
+  int32_t temp2 = settings.getInt("MINPERCENTAGE", false);
+  if (temp2 <= 500 && temp2 >= -100) {
+    datalayer.battery.settings.min_percentage = temp2 * 10;  // Multiply by 10 for backwards compatibility
   }
   temp = settings.getUInt("MAXCHARGEAMP", false);
   if (temp != 0) {
@@ -117,9 +117,13 @@ void init_stored_settings() {
         return CAN_Interface::CAN_ADDON_MCP2515;
       case comm_interface::CanFdAddonMcp2518:
         return CAN_Interface::CANFD_ADDON_MCP2518;
+      case comm_interface::RS485:
+      case comm_interface::Modbus:
+      case comm_interface::Highest:
+        return CAN_Interface::NO_CAN_INTERFACE;
     }
 
-    return CAN_Interface::CAN_NATIVE;
+    return CAN_Interface::CAN_NATIVE;  //Failed to determine, return CAN native
   };
 
   can_config.battery = readIf("BATTCOMM");
@@ -191,7 +195,7 @@ void init_stored_settings() {
 
 void store_settings_equipment_stop() {
   settings.begin("batterySettings", false);
-  settings.putBool("EQUIPMENT_STOP", datalayer.system.settings.equipment_stop_active);
+  settings.putBool("EQUIPMENT_STOP", datalayer.system.info.equipment_stop_active);
   settings.end();
 }
 
@@ -211,7 +215,7 @@ void store_settings() {
   if (!settings.putUInt("MAXPERCENTAGE", datalayer.battery.settings.max_percentage / 10)) {
     set_event(EVENT_PERSISTENT_SAVE_INFO, 5);
   }
-  if (!settings.putUInt("MINPERCENTAGE", datalayer.battery.settings.min_percentage / 10)) {
+  if (!settings.putInt("MINPERCENTAGE", datalayer.battery.settings.min_percentage / 10)) {
     set_event(EVENT_PERSISTENT_SAVE_INFO, 6);
   }
   if (!settings.putUInt("MAXCHARGEAMP", datalayer.battery.settings.max_user_set_charge_dA)) {
