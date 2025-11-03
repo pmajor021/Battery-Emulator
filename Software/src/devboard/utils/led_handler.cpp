@@ -20,13 +20,13 @@
 
 static LED* led;
 
-#define unsigned long lastPrintTime = 0;
-#define const unsigned long interval = 2500;
-#define int battery_show = 1;
+static unsigned long lastPrintTime = 0;
+static const unsigned long interval = 2500;
+static int battery_show = 1;
 
-#define const int colorR = 0;
-#define const int colorG = 0;
-#define const int colorB = 128;
+static const int colorR = 0;
+static const int colorG = 0;
+static const int colorB = 128;
 
 
 // Set the LCD I2C address and dimensions
