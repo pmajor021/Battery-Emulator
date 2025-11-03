@@ -81,9 +81,9 @@ void LED::exe(void) {
       pixels.setPixelColor(COLOR_GREEN(brightness));  // Green pulsing LED
       break;
     case EMULATOR_STATUS::STATUS_WARNING:
-      pixels.setPixelColor(COLOR_YELLOW(brightness));  // Yellow pulsing LED      }
+      pixels.setPixelColor(COLOR_YELLOW(brightness));  // Yellow pulsing LED
       break;
-    case EMULATOR_STATUS::STATUS_ERROR: 
+    case EMULATOR_STATUS::STATUS_ERROR:
       pixels.setPixelColor(COLOR_RED(esp32hal->LED_MAX_BRIGHTNESS()));  // Red LED full brightness
       break;
     case EMULATOR_STATUS::STATUS_UPDATING:
