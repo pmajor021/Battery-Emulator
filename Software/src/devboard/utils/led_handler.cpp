@@ -23,8 +23,13 @@ static unsigned long lastPrintTime = 0;
 static const unsigned long interval = 2500;
 static int battery_show = 1;
 
+static const int colorR = 0;
+static const int colorG = 0;
+static const int colorB = 128;
+
+
 // Set the LCD I2C address and dimensions
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+DFRobot_RGBLCD1602 lcd(0x2D, 16, 2);
 
 bool led_init(void) {
   if (!esp32hal->alloc_pins("LED", esp32hal->LED_PIN())) {
@@ -35,11 +40,11 @@ bool led_init(void) {
   led = new LED(datalayer.battery.status.led_mode, esp32hal->LED_PIN(), esp32hal->LED_MAX_BRIGHTNESS());
 
   // Configure custom I2C pins
-  Wire.begin(15, 16, 100000); // SDA = GPIO 16, SCL = GPIO 15
+  Wire.begin(esp32hal->LCD_SDA(), esp32hal->LCD_SCL(), 100000);
 
   // Initialize LCD
   lcd.init();
-  lcd.backlight();
+  lcd.setRGB(colorR, colorG, colorB);
 
   // Display message
   lcd.setCursor(0, 0);
@@ -76,9 +81,9 @@ void LED::exe(void) {
       pixels.setPixelColor(COLOR_GREEN(brightness));  // Green pulsing LED
       break;
     case EMULATOR_STATUS::STATUS_WARNING:
-      pixels.setPixelColor(COLOR_YELLOW(brightness));  // Yellow pulsing LED
+      pixels.setPixelColor(COLOR_YELLOW(brightness));  // Yellow pulsing LED      }
       break;
-    case EMULATOR_STATUS::STATUS_ERROR:
+    case EMULATOR_STATUS::STATUS_ERROR: 
       pixels.setPixelColor(COLOR_RED(esp32hal->LED_MAX_BRIGHTNESS()));  // Red LED full brightness
       break;
     case EMULATOR_STATUS::STATUS_UPDATING:
@@ -92,7 +97,22 @@ void LED::exe(void) {
 
   if (currentTime - lastPrintTime >= interval) {
     lastPrintTime = currentTime;
-
+    // Set color
+    switch (get_emulator_status()) {
+      case EMULATOR_STATUS::STATUS_OK:
+        lcd.setRGB(0, 128, 0); // Green backlight
+        break;
+      case EMULATOR_STATUS::STATUS_WARNING:
+        lcd.setRGB(128, 128, 0); // Yellow backlight
+        break;
+      case EMULATOR_STATUS::STATUS_ERROR: 
+        lcd.setRGB(128, 0, 0); // Red backlight
+        break;
+      case EMULATOR_STATUS::STATUS_UPDATING:
+        lcd.setRGB(0, 0, 128); // Blue backlight 
+        break;
+    }
+    
     // Select which battery to display (1 or 2)
     auto* bat = (battery_show == 1) ? &datalayer.battery : &datalayer.battery2;
 

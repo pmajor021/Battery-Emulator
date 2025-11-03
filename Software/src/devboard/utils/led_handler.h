@@ -4,7 +4,7 @@
 #include "../../devboard/utils/types.h"
 #include "../../lib/adafruit-Adafruit_NeoPixel/Adafruit_NeoPixel.h"
 #include "Wire.h"
-#include "../../lib/marcoschwartz-LiquidCrystal_I2C/LiquidCrystal_I2C.h"
+#include "../../lib/dfrobot - DFRobot_RGBLCD1602/DFRobot_RGBLCD1602.h"
 
 class LED {
  public:
