@@ -19,9 +19,9 @@ if opi PSRAM is enabled.
  x35:LED                39:INT
   38:SCK                42:SDI
  x37:SDO                41:nCS
- x36:ESTOP              40
-  16                     4
-  15                     5:BAT2_CTRS
+ x36:ESTOP              40:
+  16:I2C_SDA             4:
+  15:I2C_SCL             5:BAT2_CTRS
   45                    48:POS_CTR
   47:                   21:PRECHARGE
   14:HV_INV_DIS/[WUP2]  17:NEG_CTR
@@ -85,8 +85,8 @@ class LilyGo2CANHal : public Esp32Hal {
   virtual uint8_t LED_MAX_BRIGHTNESS() { return 40; }
 
   // LCD 
-  virtual gpio_num_t LCD_SDA() { return GPIO_NUM_16; }
-  virtual gpio_num_t LCD_SCL() { return GPIO_NUM_15; }
+  virtual gpio_num_t LCD_SDA() { return GPIO_NUM_15; }
+  virtual gpio_num_t LCD_SCL() { return GPIO_NUM_16; }
 
   // Equipment stop pin
   virtual gpio_num_t EQUIPMENT_STOP_PIN() { return GPIO_NUM_36; }

@@ -35,7 +35,7 @@ bool led_init(void) {
   led = new LED(datalayer.battery.status.led_mode, esp32hal->LED_PIN(), esp32hal->LED_MAX_BRIGHTNESS());
 
   // Configure custom I2C pins
-  Wire.begin(16, 15, 100000); // SDA = GPIO 16, SCL = GPIO 15
+  Wire.begin(15, 16, 100000); // SDA = GPIO 16, SCL = GPIO 15
 
   // Initialize LCD
   lcd.init();
